@@ -1,3 +1,2 @@
 # Tarkvaraarenduse grupitöö
-
-## Teeme veebiäppi
+Teeme veebiäppi
