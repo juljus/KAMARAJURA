@@ -1,2 +1,2 @@
-# Tarkvaraarenduse grupitöö
-Teeme veebiäppi
+# KAMARAJURA
+Mängude hindamissüsteem
