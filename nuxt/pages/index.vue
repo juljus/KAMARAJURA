@@ -1,6 +1,6 @@
 <template>
     <div>
-        <h1>teretere</h1>
+        <h1 class="p-10 text-6xl">teretere</h1>
     </div>
 </template>
 
