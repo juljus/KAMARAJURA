@@ -2,7 +2,7 @@
 Mängude hindamissüsteem
 
 ## Prerequisites
-* node.js
+* node.js (npm)
 
 ## Usage
 1. clone the repository to your computer
