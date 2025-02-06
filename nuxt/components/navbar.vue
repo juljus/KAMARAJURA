@@ -1,10 +1,10 @@
 <template>
     <div>
         <nav class="p-4 mb-8 border-b-2 border-gray-400">
-            <ul class="flex space-x-4">
-                <li class="p-4"> <NuxtLink to="/">KAMARAJURA</NuxtLink> </li>
-                <li class="p-4">SEARCH</li>
-                <li class="p-4">LOGIN</li>
+            <ul class="grid-cols-3 grid">
+                <li class="p-4 text-center"> <NuxtLink to="/">KAMARAJURA</NuxtLink> </li>
+                <li class="p-4 text-center">SEARCH</li>
+                <li class="p-4 text-center">LOGIN</li>
             </ul>
         </nav>
     </div>
