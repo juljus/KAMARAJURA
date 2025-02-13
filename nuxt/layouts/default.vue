@@ -12,6 +12,10 @@
             <slot/>
         </div>
 
+        <Footer>
+            <!-- TODO: Footer -->
+        </Footer>
+
     </div>
 </template>
 

@@ -4,7 +4,7 @@
             <ul class="grid-cols-3 grid">
                 <li class="p-4 text-center"> <NuxtLink to="/">KAMARAJURA</NuxtLink> </li>
                 <li class="p-4 text-center">SEARCH</li>
-                <li class="p-4 text-center">LOGIN</li>
+                <li class="p-4 text-center"> <NuxtLink to="/auth/">LOGIN</NuxtLink> </li>
             </ul>
         </nav>
     </div>
