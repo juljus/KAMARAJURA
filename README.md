@@ -17,4 +17,4 @@ Mängude hindamissüsteem
 ## Folder structure
 * __Pages__ - page tree
 * __Components__ - modular code that can be included
-* __Layouts__ - the wrapper around a page, `default.vue` us applied to all pages by default
+* __Layouts__ - the wrapper around a page, `default.vue` is applied to all pages by default
