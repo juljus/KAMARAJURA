@@ -43,7 +43,7 @@ namespace backend.Controllers
             // Assign a new ID
             user.Id = users.Count > 0 ? users.Max(u => u.Id) + 1 : 1;
 
-            // TODO: Hash the password before storing it
+            // TODO: Hash the password before storing it (or hash it before sending it to the backend)
 
             // Add the user to the list
             users.Add(user);
