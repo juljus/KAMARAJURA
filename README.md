@@ -3,6 +3,7 @@ Mängude hindamissüsteem
 
 ## Prerequisites
 * node.js (npm)
+* .NET 9.0
 
 ## Install
 1. clone the repository to your computer
