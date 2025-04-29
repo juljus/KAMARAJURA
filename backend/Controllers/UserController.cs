@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using backend.Models;
 using Microsoft.Data.SqlClient;
 using Dapper;
+using BCrypt.Net;
 
 namespace backend.Controllers
 {
@@ -85,7 +86,7 @@ namespace backend.Controllers
                     }
 
                     // TODO: Hash the password BEFORE storing it
-                    string hashedPassword = HashPassword(user.Password); // Replace with your hashing logic
+                    string hashedPassword = BCrypt.Net.BCrypt.HashPassword(user.Password);
 
                     // Insert the new user into the database
                     var sql = "INSERT INTO dbo.users (user_name, user_password) VALUES (@Name, @PasswordHash); SELECT CAST(SCOPE_IDENTITY() as int)";
@@ -132,7 +133,7 @@ namespace backend.Controllers
             }
         }
 
-        // Placeholder for password hashing (you'll need a proper implementation)
+        // Placeholder for password hashing (we'll need a proper implementation)
         private string HashPassword(string password)
         {
             // In a real application, use a robust hashing algorithm like BCrypt or Argon2
