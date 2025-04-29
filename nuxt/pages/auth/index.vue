@@ -1,7 +1,7 @@
 <template>
     <div class="grid gap-6 mb-6 md:grid-cols-2">
         <div>
-            <label for="Username" class="block mb-2 text-gray-400 bg-stone-950 font-mono">Username</label>
+            <label for="Username" class="block mb-2 text-gray-400 bg-stone-900 font-mono">Username</label>
             <input type="text" id="user_name" class="bg-stone-950 border-b-2 border-gray-400 text-gray-400 font-mono rounded-lg focus:ring-blue-900 focus:border-blue-900 block w-full p-2.5" placeholder="User HERE" required />"
         </div>
         <div>
