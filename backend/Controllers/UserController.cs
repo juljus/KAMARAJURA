@@ -10,7 +10,6 @@ namespace backend.Controllers
     [Route("api/[controller]")]
     public class UserController : ControllerBase
     {
-        private static List<User> users = new List<User>();
         private readonly string _connectionString;
 
         public UserController(IConfiguration configuration)
@@ -21,49 +20,54 @@ namespace backend.Controllers
         [HttpGet]
         public ActionResult<IEnumerable<User>> GetAll()
         {
-            return Ok(users);
+            try
+            {
+                using (var connection = new SqlConnection(_connectionString))
+                {
+                    var users = connection.Query<User>("SELECT user_id, user_name FROM dbo.users").ToList();
+                    return Ok(users);
+                }
+            }
+            catch (SqlException ex)
+            {
+                return StatusCode(500, $"Database error: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
 
         [HttpGet("{id}")]
         public ActionResult<User> GetById(int id)
         {
-            var user = users.FirstOrDefault(u => u.Id == id);
-            if (user == null)
+            try
             {
-                return NotFound();
+                using (var connection = new SqlConnection(_connectionString))
+                {
+                    var user = connection.QueryFirstOrDefault<User>("SELECT user_id, user_name FROM dbo.users WHERE user_id = @Id", new { Id = id });
+                    if (user == null)
+                    {
+                        return NotFound();
+                    }
+                    return Ok(user);
+                }
             }
-            return Ok(user);
+            catch (SqlException ex)
+            {
+                return StatusCode(500, $"Database error: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
 
-        // [HttpPost]
-        // public ActionResult<User> Create([FromBody] User user)
-        // {
-        //     // Ensure the user object is not null and has required properties
-        //     if (user == null || string.IsNullOrWhiteSpace(user.Name) || string.IsNullOrWhiteSpace(user.Password))
-        //     {
-        //         return BadRequest("Invalid user data. Name and Password are required.");
-        //     }
-
-        //     // Check for duplicate users (e.g., by Name or other unique property)
-        //     if (users.Any(u => u.Name.Equals(user.Name, StringComparison.OrdinalIgnoreCase)))
-        //     {
-        //         return Conflict("A user with the same name already exists.");
-        //     }
-
-        //     // Assign a new ID
-        //     user.Id = users.Count > 0 ? users.Max(u => u.Id) + 1 : 1;
-
-        //     // TODO: Hash the password before storing it (or hash it before sending it to the backend)
-
-        //     // Add the user to the list
-        //     users.Add(user);
-
-        //     // Return the created user with a 201 Created response
-        //     return CreatedAtAction(nameof(GetById), new { id = user.Id }, user);
-        // }
-
         [HttpPost]
-        public ActionResult<User> Create([FromBody] User user)
+        [HttpPost("createUser")] // Temporary alias for backward compatibility
+        public ActionResult<User> CreateUser([FromBody] User user)
         {
             if (user == null || string.IsNullOrWhiteSpace(user.Name) || string.IsNullOrWhiteSpace(user.Password))
             {
@@ -75,7 +79,7 @@ namespace backend.Controllers
                 using (var connection = new SqlConnection(_connectionString))
                 {
                     // Check for duplicate users in the database
-                    var existingUser = connection.QueryFirstOrDefault<User>("SELECT id FROM dbo.users WHERE user_name = @Name", new { Name = user.Name });
+                    var existingUser = connection.QueryFirstOrDefault<User>("SELECT user_id FROM dbo.users WHERE user_name = @Name", new { Name = user.Name });
                     if (existingUser != null)
                     {
                         return Conflict("A user with the same name already exists in the database.");
@@ -89,7 +93,7 @@ namespace backend.Controllers
                     int newUserId = connection.ExecuteScalar<int>(sql, new { Name = user.Name, PasswordHash = hashedPassword });
 
                     // Retrieve the newly created user (optional, but good practice)
-                    var createdUser = connection.QueryFirstOrDefault<User>("SELECT id, user_name FROM dbo.users WHERE id = @Id", new { Id = newUserId });
+                    var createdUser = connection.QueryFirstOrDefault<User>("SELECT user_id, user_name FROM dbo.users WHERE user_id = @Id", new { Id = newUserId });
 
                     if (createdUser != null)
                     {
@@ -112,5 +116,28 @@ namespace backend.Controllers
             }
         }
 
+        [HttpGet("test-connection")]
+        public IActionResult TestConnection()
+        {
+            try
+            {
+                using (var connection = new SqlConnection(_connectionString))
+                {
+                    connection.Open();
+                    return Ok("Connection successful!");
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Connection failed: {ex.Message}");
+            }
+        }
+
+        // Placeholder for password hashing (we'll need a proper implementation)
+        private string HashPassword(string password)
+        {
+            // In a real application, use a robust hashing algorithm like BCrypt or Argon2
+            return password; // THIS IS NOT SECURE!
+        }
     }
 }
