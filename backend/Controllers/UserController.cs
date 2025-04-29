@@ -9,7 +9,6 @@ namespace backend.Controllers
     [Route("api/[controller]")]
     public class UserController : ControllerBase
     {
-        private static List<User> users = new List<User>();
         private readonly string _connectionString;
 
         public UserController(IConfiguration configuration)
@@ -20,22 +19,54 @@ namespace backend.Controllers
         [HttpGet]
         public ActionResult<IEnumerable<User>> GetAll()
         {
-            return Ok(users);
+            try
+            {
+                using (var connection = new SqlConnection(_connectionString))
+                {
+                    var users = connection.Query<User>("SELECT user_id, user_name FROM dbo.users").ToList();
+                    return Ok(users);
+                }
+            }
+            catch (SqlException ex)
+            {
+                return StatusCode(500, $"Database error: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
 
         [HttpGet("{id}")]
         public ActionResult<User> GetById(int id)
         {
-            var user = users.FirstOrDefault(u => u.Id == id);
-            if (user == null)
+            try
             {
-                return NotFound();
+                using (var connection = new SqlConnection(_connectionString))
+                {
+                    var user = connection.QueryFirstOrDefault<User>("SELECT user_id, user_name FROM dbo.users WHERE user_id = @Id", new { Id = id });
+                    if (user == null)
+                    {
+                        return NotFound();
+                    }
+                    return Ok(user);
+                }
             }
-            return Ok(user);
+            catch (SqlException ex)
+            {
+                return StatusCode(500, $"Database error: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
 
         [HttpPost]
-        public ActionResult<User> Create([FromBody] User user)
+        [HttpPost("createUser")] // Temporary alias for backward compatibility
+        public ActionResult<User> CreateUser([FromBody] User user)
         {
             if (user == null || string.IsNullOrWhiteSpace(user.Name) || string.IsNullOrWhiteSpace(user.Password))
             {

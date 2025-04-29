@@ -23,7 +23,6 @@ This document provides an overview of the database structure for the project. Be
 | `game_id`         | `INT`            | Primary key, auto-incremented.             |
 | `game_name`       | `NVARCHAR(MAX)`  | The name of the game.                      |
 | `game_description`| `NVARCHAR(MAX)`  | A description of the game.                 |
-| `game_image`      | `VARBINARY(MAX)` | Binary data representing the game's image. |
 
 ### 3. Ratings Table
 - **Table Name**: `ratings`

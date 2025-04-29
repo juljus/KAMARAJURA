@@ -5,7 +5,7 @@ builder.Services.AddControllers(); // Add support for controllers
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
-// Add CORS policy
+// Enable CORS to allow requests from the Nuxt frontend
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowNuxtApp", policy =>

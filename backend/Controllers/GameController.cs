@@ -66,6 +66,13 @@ namespace backend.Controllers
             {
                 using (var connection = new SqlConnection(_connectionString))
                 {
+                    // Added validation to check for duplicate games before inserting
+                    var existingGame = connection.QueryFirstOrDefault<Game>("SELECT game_id FROM dbo.games WHERE game_name = @GameName", new { GameName = game.GameName });
+                    if (existingGame != null)
+                    {
+                        return Conflict("A game with the same name already exists in the database.");
+                    }
+
                     // Updated SQL query to use SCOPE_IDENTITY() for generating game_id
                     var sql = "INSERT INTO dbo.games (game_name, game_description) VALUES (@GameName, @GameDescription); SELECT CAST(SCOPE_IDENTITY() as int)";
                     int newGameId = connection.ExecuteScalar<int>(sql, new { game.GameName, game.GameDescription });

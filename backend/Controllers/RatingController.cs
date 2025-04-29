@@ -66,6 +66,26 @@ namespace backend.Controllers
             {
                 using (var connection = new SqlConnection(_connectionString))
                 {
+                    // Added validation to ensure game_id and user_id exist before creating a rating
+                    var gameExists = connection.QueryFirstOrDefault<int>("SELECT COUNT(1) FROM dbo.games WHERE game_id = @GameId", new { GameId = rating.GameId });
+                    if (gameExists == 0)
+                    {
+                        return BadRequest("Invalid game_id. The game does not exist.");
+                    }
+
+                    var userExists = connection.QueryFirstOrDefault<int>("SELECT COUNT(1) FROM dbo.users WHERE user_id = @UserId", new { UserId = rating.UserId });
+                    if (userExists == 0)
+                    {
+                        return BadRequest("Invalid user_id. The user does not exist.");
+                    }
+
+                    // Added validation to ensure a user can only rate a game once
+                    var existingRating = connection.QueryFirstOrDefault<int>("SELECT COUNT(1) FROM dbo.ratings WHERE game_id = @GameId AND user_id = @UserId", new { GameId = rating.GameId, UserId = rating.UserId });
+                    if (existingRating > 0)
+                    {
+                        return Conflict("This user has already rated this game.");
+                    }
+
                     var sql = "INSERT INTO dbo.ratings (game_id, user_id, rating_timestamp, rating_score, rating_description) VALUES (@GameId, @UserId, @RatingTimestamp, @RatingScore, @RatingDescription); SELECT CAST(SCOPE_IDENTITY() as int)";
                     int newRatingId = connection.ExecuteScalar<int>(sql, rating);
                     rating.RatingId = newRatingId;
