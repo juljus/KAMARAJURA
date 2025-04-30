@@ -1,15 +1,19 @@
 <template>
     <div>
-        <nav class="p-10 mb-8 border-b-2 border-gray-400">
+        <nav class="p-10 mb-8 border-b-2 border-gray-400 bg-stone-900">
             <ul class="grid-cols-3 grid">
-                <li class="p-4 text-center transition ease-in-out delay-150 hover:-translate-y-1 hover:scale-110 hover:text-gray-300"> <NuxtLink to="/">KAMARAJURA</NuxtLink> </li>
-                <li class="p-4 text-center transition ease-in-out delay-150 hover:-translate-y-1 hover:scale-110 hover:text-gray-300"> <NuxtLink to="/search/">FIND GAMES</NuxtLink></li>
+                <li class="p-4 text-center transition ease-in-out delay-150 hover:-translate-y-1 hover:scale-110 hover:text-gray-300"> 
+                    <NuxtLink to="/">KAMARAJURA</NuxtLink> 
+                </li>
+                <li class="p-4 text-center transition ease-in-out delay-150 hover:-translate-y-1 hover:scale-110 hover:text-gray-300"> 
+                    <NuxtLink to="/game/create">CREATE GAME</NuxtLink>
+                </li>
                 <li class="p-4 text-center transition ease-in-out delay-150 hover:-translate-y-1 hover:scale-110 hover:text-gray-300">
                     <div class="flex items-center">
-                        <a href="/auth" class="text-gray-300 hover:text-gray-400">
+                        <NuxtLink to="/auth" class="text-gray-300 hover:text-gray-400">
                             <span v-if="isLoggedIn">{{ username }}</span>
                             <span v-else>Login</span>
-                        </a>
+                        </NuxtLink>
                     </div>
                 </li>
             </ul>
@@ -34,4 +38,20 @@ const isLoggedIn = computed(() => !!token.value);
 </script>
 
 <style scoped>
+nav {
+    background-color: #1f1f1f;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+ul {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+li {
+    color: #e2e8f0;
+    font-weight: bold;
+}
 </style>
