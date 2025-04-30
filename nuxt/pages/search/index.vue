@@ -14,22 +14,6 @@
                 placeholder="Da game finder huzzaa"
                 required
             />
-            <button @click="toggleAddGameForm" class="add-game-button">Add Game</button>
-        </div>
-
-        <div v-if="showAddGameForm" class="add-game-form">
-            <h3>Add a New Game</h3>
-            <form @submit.prevent="submitGame">
-                <div>
-                    <label for="gameName">Game Name</label>
-                    <input type="text" id="gameName" v-model="newGame.game_name" required />
-                </div>
-                <div>
-                    <label for="gameDescription">Game Description</label>
-                    <textarea id="gameDescription" v-model="newGame.game_description" required></textarea>
-                </div>
-                <button type="submit">Submit</button>
-            </form>
         </div>
 
         <ul class="mt-6">
@@ -51,11 +35,6 @@ import axios from 'axios';
 
 const searchQuery = ref('');
 const games = ref([]);
-const showAddGameForm = ref(false);
-const newGame = ref({
-    game_name: '',
-    game_description: ''
-});
 
 // Fetch games from the backend
 const fetchGames = async () => {
@@ -96,28 +75,6 @@ const toggleAddGameForm = () => {
     showAddGameForm.value = !showAddGameForm.value;
 };
 
-const submitGame = async () => {
-    try {
-        const token = localStorage.getItem('authToken');
-        if (!token) {
-            alert('You must be logged in to add a game.');
-            return;
-        }
-
-        await axios.post('http://localhost:5005/api/game', newGame.value, {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
-        });
-
-        alert('Game added successfully!');
-        newGame.value = { game_name: '', game_description: '' };
-        showAddGameForm.value = false;
-    } catch (error) {
-        alert('Failed to add game. Please try again.');
-        console.error(error);
-    }
-};
 </script>
 
 <style scoped>
