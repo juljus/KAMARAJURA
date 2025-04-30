@@ -14,6 +14,22 @@
                 placeholder="Da game finder huzzaa"
                 required
             />
+            <button @click="toggleAddGameForm" class="add-game-button">Add Game</button>
+        </div>
+
+        <div v-if="showAddGameForm" class="add-game-form">
+            <h3>Add a New Game</h3>
+            <form @submit.prevent="submitGame">
+                <div>
+                    <label for="gameName">Game Name</label>
+                    <input type="text" id="gameName" v-model="newGame.game_name" required />
+                </div>
+                <div>
+                    <label for="gameDescription">Game Description</label>
+                    <textarea id="gameDescription" v-model="newGame.game_description" required></textarea>
+                </div>
+                <button type="submit">Submit</button>
+            </form>
         </div>
 
         <ul class="mt-6">
@@ -35,6 +51,11 @@ import axios from 'axios';
 
 const searchQuery = ref('');
 const games = ref([]);
+const showAddGameForm = ref(false);
+const newGame = ref({
+    game_name: '',
+    game_description: ''
+});
 
 // Fetch games from the backend
 const fetchGames = async () => {
@@ -70,6 +91,33 @@ const goToGamePage = (gameId) => {
     console.log('Navigating to game page with ID:', gameId);
     window.location.href = `/game/${gameId}`;
 };
+
+const toggleAddGameForm = () => {
+    showAddGameForm.value = !showAddGameForm.value;
+};
+
+const submitGame = async () => {
+    try {
+        const token = localStorage.getItem('authToken');
+        if (!token) {
+            alert('You must be logged in to add a game.');
+            return;
+        }
+
+        await axios.post('http://localhost:5005/api/game', newGame.value, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+
+        alert('Game added successfully!');
+        newGame.value = { game_name: '', game_description: '' };
+        showAddGameForm.value = false;
+    } catch (error) {
+        alert('Failed to add game. Please try again.');
+        console.error(error);
+    }
+};
 </script>
 
 <style scoped>
@@ -80,5 +128,60 @@ button {
 button:active {
     transform: translateY(2px);
     box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.search-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.search-bar {
+    flex: 1;
+    padding: 8px;
+}
+
+.add-game-button {
+    padding: 8px 12px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.add-game-form {
+    margin-top: 20px;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.add-game-form h3 {
+    margin-bottom: 15px;
+}
+
+.add-game-form label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.add-game-form input,
+.add-game-form textarea {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.add-game-form button {
+    padding: 8px 12px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
 }
 </style>

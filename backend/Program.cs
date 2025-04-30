@@ -8,11 +8,11 @@ builder.Services.AddOpenApi();
 // Enable CORS to allow requests from the Nuxt frontend
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowNuxtApp", policy =>
+    options.AddDefaultPolicy(policy =>
     {
-        policy.WithOrigins("http://localhost:3000") // Adjust this to your Nuxt app's URL
-            .AllowAnyHeader()
-            .AllowAnyMethod();
+        policy.WithOrigins("http://localhost:3000")
+              .AllowAnyHeader()
+              .AllowAnyMethod();
     });
 });
 
@@ -29,8 +29,8 @@ if (app.Environment.IsDevelopment())
 
 // app.UseAuthorization();
 
-// Use CORS policy
-app.UseCors("AllowNuxtApp");
+// Enable CORS
+app.UseCors();
 
 app.MapControllers(); // Map controller endpoints
 
