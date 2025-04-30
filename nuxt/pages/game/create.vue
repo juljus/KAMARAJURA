@@ -23,11 +23,14 @@
       </div>
       <button
         type="submit"
-        class="px-6 py-2 text-gray-300 bg-green-700 rounded-md hover:bg-green-800 focus:outline-none focus:ring focus:ring-green-300"
+        :disabled="isSubmitting"
+        class="px-6 py-2 text-gray-300 bg-green-700 rounded-md hover:bg-green-800 focus:outline-none focus:ring focus:ring-green-300 disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        Submit
+        <span v-if="isSubmitting">Submitting...</span>
+        <span v-else>Submit</span>
       </button>
     </form>
+    <p v-if="feedbackMessage" :class="feedbackClass" class="mt-4 text-center">{{ feedbackMessage }}</p>
   </div>
 </template>
 
@@ -39,12 +42,19 @@ const newGame = ref({
   game_name: '',
   game_description: ''
 });
+const isSubmitting = ref(false);
+const feedbackMessage = ref('');
+const feedbackClass = ref('');
 
 const submitGame = async () => {
   try {
+    isSubmitting.value = true;
+    feedbackMessage.value = '';
+
     const token = localStorage.getItem('authToken');
     if (!token) {
-      alert('You must be logged in to add a game.');
+      feedbackMessage.value = 'You must be logged in to add a game.';
+      feedbackClass.value = 'text-red-500';
       return;
     }
 
@@ -54,11 +64,15 @@ const submitGame = async () => {
       }
     });
 
-    alert('Game added successfully!');
+    feedbackMessage.value = 'Game added successfully!';
+    feedbackClass.value = 'text-green-500';
     newGame.value = { game_name: '', game_description: '' };
   } catch (error) {
-    alert('Failed to add game. Please try again.');
+    feedbackMessage.value = 'Failed to add game. Please try again.';
+    feedbackClass.value = 'text-red-500';
     console.error(error);
+  } finally {
+    isSubmitting.value = false;
   }
 };
 </script>
