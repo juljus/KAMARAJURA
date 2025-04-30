@@ -3,6 +3,7 @@ using backend.Models;
 using Microsoft.Data.SqlClient;
 using Dapper;
 using BCrypt.Net;
+using System.Reflection;
 
 namespace backend.Controllers
 {
@@ -15,6 +16,8 @@ namespace backend.Controllers
         public UserController(IConfiguration configuration)
         {
             _connectionString = configuration.GetConnectionString("DefaultConnection") ?? throw new ArgumentNullException(nameof(configuration), "Connection string 'DefaultConnection' is missing or null.");
+
+            // Removed custom type mapping as models now match the database schema
         }
 
         [HttpGet]
@@ -69,7 +72,7 @@ namespace backend.Controllers
         [HttpPost("createUser")] // Temporary alias for backward compatibility
         public ActionResult<User> CreateUser([FromBody] User user)
         {
-            if (user == null || string.IsNullOrWhiteSpace(user.Name) || string.IsNullOrWhiteSpace(user.Password))
+            if (user == null || string.IsNullOrWhiteSpace(user.user_name) || string.IsNullOrWhiteSpace(user.user_password))
             {
                 return BadRequest("Invalid user data. Name and Password are required.");
             }
@@ -79,25 +82,25 @@ namespace backend.Controllers
                 using (var connection = new SqlConnection(_connectionString))
                 {
                     // Check for duplicate users in the database
-                    var existingUser = connection.QueryFirstOrDefault<User>("SELECT user_id FROM dbo.users WHERE user_name = @Name", new { Name = user.Name });
+                    var existingUser = connection.QueryFirstOrDefault<User>("SELECT user_id FROM dbo.users WHERE user_name = @user_name", new { user_name = user.user_name });
                     if (existingUser != null)
                     {
                         return Conflict("A user with the same name already exists in the database.");
                     }
 
                     // TODO: Hash the password BEFORE storing it
-                    string hashedPassword = BCrypt.Net.BCrypt.HashPassword(user.Password);
+                    string hashedPassword = BCrypt.Net.BCrypt.HashPassword(user.user_password);
 
                     // Insert the new user into the database
                     var sql = "INSERT INTO dbo.users (user_name, user_password) VALUES (@Name, @PasswordHash); SELECT CAST(SCOPE_IDENTITY() as int)";
-                    int newUserId = connection.ExecuteScalar<int>(sql, new { Name = user.Name, PasswordHash = hashedPassword });
+                    int newUserId = connection.ExecuteScalar<int>(sql, new { user_name = user.user_name, PasswordHash = hashedPassword });
 
                     // Retrieve the newly created user (optional, but good practice)
                     var createdUser = connection.QueryFirstOrDefault<User>("SELECT user_id, user_name FROM dbo.users WHERE user_id = @Id", new { Id = newUserId });
 
                     if (createdUser != null)
                     {
-                        return CreatedAtAction(nameof(GetById), new { id = createdUser.Id }, createdUser);
+                        return CreatedAtAction(nameof(GetById), new { id = createdUser.user_id }, createdUser);
                     }
                     else
                     {
