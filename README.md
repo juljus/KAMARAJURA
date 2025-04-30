@@ -6,16 +6,26 @@ Mängude hindamissüsteem
 * .NET 9.0
 
 ## Install
-1. clone the repository to your computer
-2. open terminal and navigate into the `nuxt` folder
-3. then run the command `npm install`
+1. Clone the repository to your computer.
+2. Open a terminal and navigate into the `nuxt` folder.
+3. Run the command `npm install` to install frontend dependencies.
+4. Open another terminal and navigate into the `backend` folder.
+5. Run the command `dotnet restore` to install backend dependencies.
 
 ## Host locally
-1. open terminal and navigate into the `nuxt` folder
-2. then run the command `npm run dev`
-3. the page will be at port `http://localhost:3000/`
+
+### Frontend
+1. Open a terminal and navigate into the `nuxt` folder.
+2. Run the command `npm run dev`.
+3. The page will be available at `http://localhost:3000/`.
+
+### Backend
+1. Open a terminal and navigate into the `backend` folder.
+2. Run the command `dotnet run`.
+3. The backend API will be available at `http://localhost:5005/`.
 
 ## Folder structure
-* __Pages__ - page tree
-* __Components__ - modular code that can be included
-* __Layouts__ - the wrapper around a page, `default.vue` is applied to all pages by default
+* __Pages__ - page tree for the frontend.
+* __Components__ - modular code that can be included in the frontend.
+* __Layouts__ - the wrapper around a page, `default.vue` is applied to all pages by default.
+* __Backend__ - contains the ASP.NET Core Web API project for the backend.
