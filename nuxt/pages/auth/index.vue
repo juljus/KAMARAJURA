@@ -1,6 +1,12 @@
 <template>
     <div class="container p-10">
-        <div class="grid gap-6 mb-6 md:grid-cols-2">
+        <div v-if="isLoggedIn" class="text-gray-300 mb-6">
+            <p>You are logged in.</p>
+            <button @click="logout" class="text-gray-400 bg-red-600 hover:bg-red-700 focus:ring-red-800 rounded-lg px-4 py-2">
+                Logout
+            </button>
+        </div>
+        <div v-else class="grid gap-6 mb-6 md:grid-cols-2">
             <div class="bg-stone-900 p-6 rounded-lg shadow-lg">
                 <h2 class="text-2xl text-gray-300 mb-4 font-semibold">Login</h2>
                 <form @submit.prevent="login">
@@ -87,7 +93,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import axios from 'axios';
 
 const loginData = ref({
@@ -114,14 +120,34 @@ const toggleSignupPasswordVisibility = () => {
     showSignupPassword.value = !showSignupPassword.value;
 };
 
+const token = ref('');
+
+if (process.client) {
+    token.value = localStorage.getItem('authToken') || '';
+}
+
 const login = async () => {
     try {
         const response = await axios.post('http://localhost:5005/api/user/login', loginData.value);
         loginMessage.value = 'Login successful!';
+        token.value = response.data.token;
+        if (process.client) {
+            localStorage.setItem('authToken', token.value);
+        }
     } catch (error) {
         loginMessage.value = error.response?.data || 'Login failed. Please check your credentials.';
     }
 };
+
+const logout = () => {
+    token.value = '';
+    if (process.client) {
+        localStorage.removeItem('authToken');
+    }
+    loginMessage.value = 'Logged out successfully.';
+};
+
+const isLoggedIn = computed(() => !!token.value);
 
 const createAccount = async () => {
     try {

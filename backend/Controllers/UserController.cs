@@ -4,6 +4,10 @@ using Microsoft.Data.SqlClient;
 using Dapper;
 using BCrypt.Net;
 using System.Reflection;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+using Microsoft.IdentityModel.Tokens;
 
 namespace backend.Controllers
 {
@@ -12,10 +16,12 @@ namespace backend.Controllers
     public class UserController : ControllerBase
     {
         private readonly string _connectionString;
+        private readonly IConfiguration _configuration;
 
         public UserController(IConfiguration configuration)
         {
             _connectionString = configuration.GetConnectionString("DefaultConnection") ?? throw new ArgumentNullException(nameof(configuration), "Connection string 'DefaultConnection' is missing or null.");
+            _configuration = configuration;
 
             // Removed custom type mapping as models now match the database schema
         }
@@ -145,7 +151,25 @@ namespace backend.Controllers
                         return Unauthorized("Invalid username or password.");
                     }
 
-                    return Ok(new { message = "Login successful", user_id = user.user_id });
+                    // Retrieve the secret key from appsettings.json
+                    var key = Encoding.ASCII.GetBytes(_configuration["JWT_SECRET"] ?? throw new InvalidOperationException("JWT_SECRET is not set in appsettings.json."));
+
+                    // Generate JWT
+                    var tokenHandler = new JwtSecurityTokenHandler();
+                    var tokenDescriptor = new SecurityTokenDescriptor
+                    {
+                        Subject = new ClaimsIdentity(new[]
+                        {
+                            new Claim(ClaimTypes.NameIdentifier, user.user_id.ToString()),
+                            new Claim(ClaimTypes.Name, user.user_name)
+                        }),
+                        Expires = DateTime.UtcNow.AddHours(1),
+                        SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+                    };
+                    var token = tokenHandler.CreateToken(tokenDescriptor);
+                    var tokenString = tokenHandler.WriteToken(token);
+
+                    return Ok(new { message = "Login successful", token = tokenString });
                 }
             }
             catch (Exception ex)
