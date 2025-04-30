@@ -65,7 +65,7 @@ namespace backend.Controllers
             {
                 using (var connection = new SqlConnection(_connectionString))
                 {
-                    var reviews = connection.Query<Rating>("SELECT * FROM dbo.ratings WHERE game_id = @GameId", new { GameId = gameId });
+                    var reviews = connection.Query("SELECT r.*, u.user_name AS username FROM dbo.ratings r JOIN dbo.users u ON r.user_id = u.user_id WHERE r.game_id = @GameId", new { GameId = gameId });
                     Console.WriteLine("Reviews fetched from database:");
                     foreach (var review in reviews)
                     {
@@ -87,6 +87,11 @@ namespace backend.Controllers
             if (rating == null || rating.game_id <= 0 || rating.user_id <= 0 || rating.rating_score <= 0)
             {
                 return BadRequest("Invalid rating data. GameId, UserId, and RatingScore are required.");
+            }
+
+            if (rating.rating_timestamp == default)
+            {
+                rating.rating_timestamp = DateTime.UtcNow;
             }
 
             try
@@ -113,7 +118,7 @@ namespace backend.Controllers
                         return Conflict("This user has already rated this game.");
                     }
 
-                    var sql = "INSERT INTO dbo.ratings (game_id, user_id, rating_timestamp, rating_score, rating_description) VALUES (@GameId, @UserId, @RatingTimestamp, @RatingScore, @RatingDescription); SELECT CAST(SCOPE_IDENTITY() as int)";
+                    var sql = "INSERT INTO dbo.ratings (game_id, user_id, rating_timestamp, rating_score, rating_description) VALUES (@game_id, @user_id, @rating_timestamp, @rating_score, @rating_description); SELECT CAST(SCOPE_IDENTITY() as int)";
                     int newRatingId = connection.ExecuteScalar<int>(sql, rating);
                     rating.rating_id = newRatingId;
                     return CreatedAtAction(nameof(GetRatingById), new { id = newRatingId }, rating);

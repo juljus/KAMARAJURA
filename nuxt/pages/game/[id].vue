@@ -1,5 +1,5 @@
 <template>
-    <div class="container p-10">
+    <div v-if="game && game.game_name" class="container p-10">
         <h1 class="text-4xl text-gray-300 mb-4 font-bold">{{ game.game_name }}</h1>
         <p class="text-gray-400 mb-6 italic">{{ game.game_description }}</p>
 
@@ -13,10 +13,55 @@
                 <li v-for="review in reviews" :key="review.rating_id" class="p-4 bg-stone-800 text-gray-300 rounded-lg mb-2 shadow-md">
                     <p><strong>Rating:</strong> {{ review.rating_score }}/10</p>
                     <p><strong>Comment:</strong> {{ review.rating_description }}</p>
+                    <p><strong>User:</strong> {{ review.username }}</p>
                 </li>
             </ul>
             <p v-else class="text-gray-400">No reviews</p>
         </div>
+
+        <div v-if="userHasReviewed" class="bg-stone-900 p-6 rounded-lg shadow-lg mt-6">
+            <h3 class="text-xl text-gray-300 mb-4 font-semibold">You have already reviewed this game</h3>
+            <p class="text-gray-400">Thank you for your feedback!</p>
+        </div>
+        <div v-else-if="isLoggedIn" class="bg-stone-900 p-6 rounded-lg shadow-lg mt-6">
+            <h3 class="text-xl text-gray-300 mb-4 font-semibold">Leave a Review</h3>
+            <form @submit.prevent="submitReview">
+                <div class="mb-4">
+                    <label for="ratingScore" class="block text-gray-400">Rating (1-10)</label>
+                    <input
+                        type="number"
+                        id="ratingScore"
+                        v-model.number="reviewData.rating_score"
+                        class="block w-full p-2 bg-stone-950 text-gray-400 border border-gray-400 rounded-lg"
+                        placeholder="Enter your rating"
+                        min="1"
+                        max="10"
+                        required
+                    />
+                </div>
+                <div class="mb-4">
+                    <label for="ratingDescription" class="block text-gray-400">Review</label>
+                    <textarea
+                        id="ratingDescription"
+                        v-model="reviewData.rating_description"
+                        class="block w-full p-2 bg-stone-950 text-gray-400 border border-gray-400 rounded-lg"
+                        placeholder="Write your review"
+                        rows="4"
+                        required
+                    ></textarea>
+                </div>
+                <button
+                    type="submit"
+                    class="text-gray-400 bg-sky-900 hover:bg-sky-950 focus:ring-blue-900 rounded-lg px-4 py-2"
+                >
+                    Submit Review
+                </button>
+            </form>
+            <p v-if="reviewMessage" class="mt-4 text-gray-400">{{ reviewMessage }}</p>
+        </div>
+    </div>
+    <div v-else class="text-center text-gray-300 mt-10">
+        <p>Loading game details...</p>
     </div>
 </template>
 
@@ -24,6 +69,13 @@
 import { ref, onMounted, computed } from 'vue';
 import axios from 'axios';
 import { useRoute } from 'vue-router';
+
+// Define the token variable
+const token = ref('');
+
+if (process.client) {
+    token.value = localStorage.getItem('authToken') || '';
+}
 
 const route = useRoute();
 const gameId = route.params.id;
@@ -38,15 +90,28 @@ if (!gameId) {
     console.log('Game ID retrieved successfully:', gameId);
 }
 
-const game = ref({});
+const game = ref({
+    game_name: 'Unknown Game',
+    game_description: 'No description available.'
+});
+
 const reviews = ref([]);
+
+const isLoading = ref(true);
 
 const fetchGameDetails = async () => {
     try {
         const response = await axios.get(`http://localhost:5005/api/game/${gameId}`);
+        console.log('API response for game details:', response.data);
         game.value = response.data;
     } catch (error) {
         console.error('Error fetching game details:', error);
+        game.value = {
+            game_name: 'Error Loading Game',
+            game_description: 'Unable to load game details. Please try again later.'
+        };
+    } finally {
+        isLoading.value = false;
     }
 };
 
@@ -58,7 +123,8 @@ const fetchReviews = async () => {
         reviews.value = response.data.map(review => ({
             rating_id: review.rating_id,
             rating_score: review.rating_score,
-            rating_description: review.rating_description
+            rating_description: review.rating_description,
+            username: review.username
         }));
         console.log('Processed reviews:', reviews.value);
     } catch (error) {
@@ -71,6 +137,41 @@ const averageRating = computed(() => {
     const total = reviews.value.reduce((sum, review) => sum + review.rating_score, 0);
     return (total / reviews.value.length).toFixed(1);
 });
+
+const reviewData = ref({
+    game_id: gameId,
+    user_id: null, // Will be set from the token
+    rating_score: null,
+    rating_description: ''
+});
+
+const reviewMessage = ref('');
+
+if (process.client && token.value) {
+    const payload = JSON.parse(atob(token.value.split('.')[1]));
+    reviewData.value.user_id = payload.nameid; // Extract user_id from the token
+}
+
+const isLoggedIn = computed(() => !!token.value);
+
+const userHasReviewed = computed(() => {
+    if (!isLoggedIn || !reviewData.value.user_id) return false;
+    return reviews.value.some(review => review.user_id === reviewData.value.user_id);
+});
+
+const submitReview = async () => {
+    try {
+        const response = await axios.post('http://localhost:5005/api/rating', reviewData.value, {
+            headers: {
+                Authorization: `Bearer ${token.value}`
+            }
+        });
+        reviewMessage.value = 'Review submitted successfully!';
+        fetchReviews(); // Refresh the reviews
+    } catch (error) {
+        reviewMessage.value = error.response?.data || 'Failed to submit review. Please try again.';
+    }
+};
 
 onMounted(() => {
     fetchGameDetails();
