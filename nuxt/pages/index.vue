@@ -1,8 +1,9 @@
 <template>
     <div class="container p-10">
-        <div class="relative">
+        <h1 class="text-4xl text-gray-300 mb-6 font-bold text-center">Find Your Favorite Games</h1>
+        <div class="relative mb-8">
             <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
-                <svg class="w-4 h-4 text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                <svg class="w-5 h-5 text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"/>
                 </svg>
             </div>
@@ -10,20 +11,21 @@
                 type="search"
                 id="search"
                 v-model="searchQuery"
-                class="block w-full p-4 ps-10 bg-stone-950 text-gray-400 border border-gray-400 font-mono rounded-lg focus:ring-blue-900 focus:border-blue-900"
-                placeholder="Da game finder huzzaa"
+                class="block w-full p-4 ps-10 bg-stone-950 text-gray-400 border border-gray-400 font-mono rounded-lg focus:ring-blue-900 focus:border-blue-900 shadow-md"
+                placeholder="Search for games..."
                 required
             />
         </div>
 
-        <ul class="mt-6">
+        <ul class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <li
                 v-for="game in filteredGames"
                 :key="game.game_id"
-                class="p-4 bg-stone-800 text-gray-300 rounded-lg mb-2 cursor-pointer hover:bg-stone-700"
+                class="p-6 bg-stone-800 text-gray-300 rounded-lg shadow-lg cursor-pointer hover:bg-stone-700 hover:shadow-xl transition-transform transform hover:-translate-y-1"
                 @click="goToGamePage(game.game_id)"
             >
-                {{ game.game_name }}
+                <h2 class="text-xl font-semibold mb-2">{{ game.game_name }}</h2>
+                <p class="text-gray-400 text-sm">Click to view details</p>
             </li>
         </ul>
     </div>
@@ -73,6 +75,40 @@ const goToGamePage = (gameId) => {
 </script>
 
 <style scoped>
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    background-color: #1a1a1a;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+    color: #e2e8f0;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+input {
+    transition: box-shadow 0.2s ease-in-out;
+}
+input:focus {
+    box-shadow: 0 0 10px rgba(0, 0, 255, 0.5);
+}
+
+ul {
+    display: grid;
+    gap: 1.5rem;
+}
+
+li {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+li:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.2);
+}
+
 button {
     transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
     box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);

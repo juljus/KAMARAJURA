@@ -1,20 +1,18 @@
 <template>
     <div>
-        <nav class="p-10 mb-8 border-b-2 border-gray-400 bg-stone-900">
-            <ul class="grid-cols-3 grid">
-                <li class="p-4 text-center transition ease-in-out delay-150 hover:-translate-y-1 hover:scale-110 hover:text-gray-300"> 
-                    <NuxtLink to="/">KAMARAJURA</NuxtLink> 
+        <nav class="p-6 mb-6 border-b border-gray-400 bg-stone-900">
+            <ul class="flex justify-between items-center">
+                <li class="px-4 py-2 text-center transition-transform duration-200 ease-in-out hover:scale-105 hover:text-gray-300"> 
+                    <NuxtLink to="/" class="block">KAMARAJURA</NuxtLink> 
                 </li>
-                <li class="p-4 text-center transition ease-in-out delay-150 hover:-translate-y-1 hover:scale-110 hover:text-gray-300"> 
-                    <NuxtLink to="/game/create">CREATE GAME</NuxtLink>
+                <li class="px-4 py-2 text-center transition-transform duration-200 ease-in-out hover:scale-105 hover:text-gray-300"> 
+                    <NuxtLink to="/game/create" class="block">CREATE GAME</NuxtLink>
                 </li>
-                <li class="p-4 text-center transition ease-in-out delay-150 hover:-translate-y-1 hover:scale-110 hover:text-gray-300">
-                    <div class="flex items-center">
-                        <NuxtLink to="/auth" class="text-gray-300 hover:text-gray-400">
-                            <span v-if="isLoggedIn">{{ username }}</span>
-                            <span v-else>Login</span>
-                        </NuxtLink>
-                    </div>
+                <li class="px-4 py-2 text-center transition-transform duration-200 ease-in-out hover:scale-105 hover:text-gray-300">
+                    <NuxtLink to="/auth" class="block">
+                        <span v-if="isLoggedIn">{{ username }}</span>
+                        <span v-else>Login</span>
+                    </NuxtLink>
                 </li>
             </ul>
         </nav>
@@ -40,18 +38,22 @@ const isLoggedIn = computed(() => !!token.value);
 <style scoped>
 nav {
     background-color: #1f1f1f;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 ul {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    gap: 1rem;
 }
 
 li {
     color: #e2e8f0;
     font-weight: bold;
+    cursor: pointer;
+}
+
+li:hover {
+    text-shadow: 0px 0px 5px rgba(255, 255, 255, 0.5);
 }
 </style>
