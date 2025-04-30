@@ -74,6 +74,7 @@ namespace backend.Controllers
         {
             if (user == null || string.IsNullOrWhiteSpace(user.user_name) || string.IsNullOrWhiteSpace(user.user_password))
             {
+                Console.WriteLine("Invalid user data received.");
                 return BadRequest("Invalid user data. Name and Password are required.");
             }
 
@@ -81,19 +82,21 @@ namespace backend.Controllers
             {
                 using (var connection = new SqlConnection(_connectionString))
                 {
+                    Console.WriteLine($"Attempting to create user: {user.user_name}");
+
                     // Check for duplicate users in the database
                     var existingUser = connection.QueryFirstOrDefault<User>("SELECT user_id FROM dbo.users WHERE user_name = @user_name", new { user_name = user.user_name });
                     if (existingUser != null)
                     {
+                        Console.WriteLine("User already exists.");
                         return Conflict("A user with the same name already exists in the database.");
                     }
 
-                    // TODO: Hash the password BEFORE storing it
-                    string hashedPassword = BCrypt.Net.BCrypt.HashPassword(user.user_password);
-
                     // Insert the new user into the database
-                    var sql = "INSERT INTO dbo.users (user_name, user_password) VALUES (@Name, @PasswordHash); SELECT CAST(SCOPE_IDENTITY() as int)";
-                    int newUserId = connection.ExecuteScalar<int>(sql, new { user_name = user.user_name, PasswordHash = hashedPassword });
+                    var sql = "INSERT INTO dbo.users (user_name, user_password) VALUES (@user_name, @user_password); SELECT CAST(SCOPE_IDENTITY() as int)";
+                    int newUserId = connection.ExecuteScalar<int>(sql, new { user.user_name, user.user_password });
+
+                    Console.WriteLine($"User created with ID: {newUserId}");
 
                     // Retrieve the newly created user (optional, but good practice)
                     var createdUser = connection.QueryFirstOrDefault<User>("SELECT user_id, user_name FROM dbo.users WHERE user_id = @Id", new { Id = newUserId });
@@ -104,17 +107,50 @@ namespace backend.Controllers
                     }
                     else
                     {
+                        Console.WriteLine("Failed to retrieve the newly created user.");
                         return StatusCode(500, "Failed to retrieve the newly created user.");
                     }
                 }
             }
             catch (SqlException ex)
             {
+                Console.WriteLine($"Database error: {ex.Message}");
                 return StatusCode(500, $"Database error: {ex.Message}");
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error: {ex.Message}");
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [HttpPost("login")]
+        public IActionResult Login([FromBody] User loginData)
+        {
+            if (loginData == null || string.IsNullOrWhiteSpace(loginData.user_name) || string.IsNullOrWhiteSpace(loginData.user_password))
+            {
+                return BadRequest("Invalid login data. Username and password are required.");
+            }
+
+            try
+            {
+                using (var connection = new SqlConnection(_connectionString))
+                {
+                    Console.WriteLine($"Attempting login for user: {loginData.user_name}");
+                    var user = connection.QueryFirstOrDefault<User>("SELECT * FROM dbo.users WHERE user_name = @user_name", new { user_name = loginData.user_name });
+
+                    if (user == null || user.user_password != loginData.user_password)
+                    {
+                        Console.WriteLine("Invalid username or password.");
+                        return Unauthorized("Invalid username or password.");
+                    }
+
+                    return Ok(new { message = "Login successful", user_id = user.user_id });
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error during login: {ex.Message}");
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
