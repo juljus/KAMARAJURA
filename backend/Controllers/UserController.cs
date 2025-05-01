@@ -98,9 +98,12 @@ namespace backend.Controllers
                         return Conflict("A user with the same name already exists in the database.");
                     }
 
+                    // Hash the user's password
+                    string hashedPassword = BCrypt.Net.BCrypt.HashPassword(user.user_password);
+
                     // Insert the new user into the database
                     var sql = "INSERT INTO dbo.users (user_name, user_password) VALUES (@user_name, @user_password); SELECT CAST(SCOPE_IDENTITY() as int)";
-                    int newUserId = connection.ExecuteScalar<int>(sql, new { user.user_name, user.user_password });
+                    int newUserId = connection.ExecuteScalar<int>(sql, new { user.user_name, user_password = hashedPassword });
 
                     Console.WriteLine($"User created with ID: {newUserId}");
 
@@ -145,7 +148,7 @@ namespace backend.Controllers
                     Console.WriteLine($"Attempting login for user: {loginData.user_name}");
                     var user = connection.QueryFirstOrDefault<User>("SELECT * FROM dbo.users WHERE user_name = @user_name", new { user_name = loginData.user_name });
 
-                    if (user == null || user.user_password != loginData.user_password)
+                    if (user == null || !BCrypt.Net.BCrypt.Verify(loginData.user_password, user.user_password))
                     {
                         Console.WriteLine("Invalid username or password.");
                         return Unauthorized("Invalid username or password.");
